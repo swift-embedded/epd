@@ -77,12 +77,14 @@ public class Display {
 
     private func sendCommand(_ cmd: Command) throws {
         dc.set(.low)
-        try spi.transmit([cmd.rawValue])
+        try spi.send([cmd.rawValue])
     }
 
     private func sendData(_ data: ContiguousArray<UInt8>) throws {
         dc.set(.high)
-        try spi.transmit(data)
+        try data.withUnsafeBufferPointer { buffer in
+            try spi.send(buffer, timeout: .seconds(2))
+        }
     }
 
     public func setup() throws {
@@ -108,9 +110,9 @@ public class Display {
 
     public func reset() {
         resetPin.set(.low)
-        sleep(ms: 200)
+        sleep(.milliseconds(200))
         resetPin.set(.high)
-        sleep(ms: 200)
+        sleep(.milliseconds(200))
     }
 
     public func setMemoryArea(x: ClosedRange<Int>,
